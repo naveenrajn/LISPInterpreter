@@ -2,7 +2,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
+/**
+ * LISP inbuilt functions
+ * 
+ * @author Naveenraj Nagarathinam(nagarathinam.1@osu.edu)
+ *
+ */
 public class InbuiltFunctions {
 
 	private Set<String> arithmeticFunctions;
@@ -21,7 +26,7 @@ public class InbuiltFunctions {
 		relationalFunctions = new HashSet<String>();
 		relationalFunctions.add("LESS");
 		relationalFunctions.add("GREATER");
-		
+
 		otherFunctions = new HashSet<String>();
 		otherFunctions.add("CAR");
 		otherFunctions.add("CDR");
@@ -52,11 +57,11 @@ public class InbuiltFunctions {
 			ComplexSExpression parameterExpressionTree = (ComplexSExpression) parameterTree;
 			if(((ComplexSExpression) parameterExpressionTree.getRightChild()).getRightChild()==null) { 
 				//continue only if exactly two parameters are provided
-				SExpression parameter1 = MyInterpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
-				if(parameter1 instanceof Atom && ((Atom) parameter1).isNumericAtom()) { 
+				SExpression parameter1 = Interpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
+				if(parameter1 instanceof Atom && ((Atom) parameter1).isNumericAtom()) {
 					//continue only if the first parameter is an integer
-					SExpression parameter2 = MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
-					if(parameter2 instanceof Atom && ((Atom) parameter2).isNumericAtom()) { 
+					SExpression parameter2 = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
+					if(parameter2 instanceof Atom && ((Atom) parameter2).isNumericAtom()) {
 						//continue only if the second parameter is a integer
 						Atom result = null;
 						Integer arithmeticResult;
@@ -104,7 +109,7 @@ public class InbuiltFunctions {
 			throw new Exception("ERROR: " +functionName + " expects two parameters");
 		}
 	}
-	
+
 	/**
 	 * Applies the EQ function logic on the provided parameter tree
 	 *  
@@ -117,12 +122,16 @@ public class InbuiltFunctions {
 		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null 
 				&& ((ComplexSExpression) parameterTree).getRightChild() instanceof ComplexSExpression && 
 				((ComplexSExpression) ((ComplexSExpression) parameterTree).getRightChild()).getLeftChild()!=null) {
+			//continue only if two parameters are provided
 			ComplexSExpression parameterExpressionTree = (ComplexSExpression) parameterTree;
 			if(((ComplexSExpression) parameterExpressionTree.getRightChild()).getRightChild()==null) {
-				SExpression parameter1 = MyInterpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
+				//continue only if exactly two parameters are provided
+				SExpression parameter1 = Interpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
 				if(parameter1 instanceof Atom) {
-					SExpression parameter2 = MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
+					//continue only if the first parameter is an Atom
+					SExpression parameter2 = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
 					if(parameter2 instanceof Atom) {
+						//continue only if the second parameter is an Atom
 						if(((Atom) parameter1).isNumericAtom() && ((Atom) parameter2).isNumericAtom()) {
 							if(Integer.parseInt(((Atom) parameter1).getValue()) == Integer.parseInt(((Atom) parameter2).getValue())) return new Atom("T");
 						} else if(((Atom) parameter1).isLiteralAtom() && ((Atom) parameter2).isLiteralAtom()) {
@@ -142,7 +151,7 @@ public class InbuiltFunctions {
 			throw new Exception("ERROR: EQ expects two parameters");
 		}
 	}
-	
+
 	/**
 	 * Applies the CONS function logic on the provided parameter tree
 	 *  
@@ -155,20 +164,28 @@ public class InbuiltFunctions {
 		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null 
 				&& ((ComplexSExpression) parameterTree).getRightChild() instanceof ComplexSExpression && 
 				((ComplexSExpression) ((ComplexSExpression) parameterTree).getRightChild()).getLeftChild()!=null) {
+			//continue only if two parameters are provided
 			ComplexSExpression parameterExpressionTree = (ComplexSExpression) parameterTree;
 			if(((ComplexSExpression) parameterExpressionTree.getRightChild()).getRightChild()==null) {
-				SExpression parameter1 = MyInterpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
-				SExpression parameter2 = MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
+				//continue only if exactly two parameters are provided
+				SExpression parameter1 = Interpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
+				SExpression parameter2 = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
 				if(parameter1 instanceof ComplexSExpression && ((ComplexSExpression) parameter1).isList()
 						&& parameter2 instanceof ComplexSExpression && ((ComplexSExpression) parameter2).isList()) {
+					//both parameters are list - concatenate the list by adding the root of second list as the last element of the first list
 					ComplexSExpression currentNode = (ComplexSExpression) parameter1;
 					while(currentNode.getRightChild()!=null) currentNode = (ComplexSExpression) currentNode.getRightChild();
 					currentNode.setRightChild(parameter2);
 					return parameter1;
+				} else if(parameter2 instanceof Atom && ((Atom) parameter2).getValue().equalsIgnoreCase("NIL")) {
+					ComplexSExpression consolidatedExpression = new ComplexSExpression(parameter1, null);
+					consolidatedExpression.setList(true);
+					return consolidatedExpression;
 				} else {
-					//Consolidate with DOT
+					//if not, consolidate with DOT
 					ComplexSExpression consolidatedExpression = new ComplexSExpression(parameter1, parameter2);
-					if(parameter2 instanceof ComplexSExpression && ((ComplexSExpression) parameter2).isList()) consolidatedExpression.setList(true);
+					if(parameter2 instanceof ComplexSExpression && ((ComplexSExpression) parameter2).isList())
+						consolidatedExpression.setList(true);
 					return consolidatedExpression;
 				}
 			} else {
@@ -178,23 +195,20 @@ public class InbuiltFunctions {
 			throw new Exception("ERROR: CONS expects two parameters");
 		}
 	}
-	
-	private SExpression quoteExpression(SExpression parameterTree) throws Exception {
-		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null) {
-			if(((ComplexSExpression) parameterTree).getRightChild()==null) {
-				return ((ComplexSExpression) parameterTree).getLeftChild();
-			} else {
-				throw new Exception("ERROR: QUOTE: more than one parameter found");
-			}
-		} else {
-			throw new Exception("ERROR: QUOTE expects one parameter");
-		}
-	}
 
+	/**
+	 * Applies the CAR function logic on the provided parameter tree
+	 *  
+	 * @param parameterTree - SExpression root of the tree containing parameters to the function
+	 * @param currentParameterList - key value pairs of program variables passed on from previous call in the stack
+	 * @return - the resultant SExpression of applying the function on the parameters
+	 * @throws Exception
+	 */
 	private SExpression car(SExpression parameterTree, Map<String, SExpression> currentParameterList) throws Exception {
 		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null) {
 			if(((ComplexSExpression) parameterTree).getRightChild()==null) {
-				SExpression evaluatedParameter = MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
+				//continue only if exactly one parameter is provided
+				SExpression evaluatedParameter = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
 				if(evaluatedParameter instanceof ComplexSExpression) {
 					return ((ComplexSExpression) evaluatedParameter).getLeftChild();
 				} else {
@@ -207,11 +221,20 @@ public class InbuiltFunctions {
 			throw new Exception("ERROR: CAR expects one parameter");
 		}
 	}
-	
+
+	/**
+	 * Applies the CDR function logic on the provided parameter tree
+	 *  
+	 * @param parameterTree - SExpression root of the tree containing parameters to the function
+	 * @param currentParameterList - key value pairs of program variables passed on from previous call in the stack
+	 * @return - the resultant SExpression of applying the function on the parameters
+	 * @throws Exception
+	 */
 	private SExpression cdr(SExpression parameterTree, Map<String, SExpression> currentParameterList) throws Exception {
 		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null) {
 			if(((ComplexSExpression) parameterTree).getRightChild()==null) {
-				SExpression evaluatedParameter = MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
+				//continue only if exactly one parameter is provided
+				SExpression evaluatedParameter = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
 				if(evaluatedParameter instanceof ComplexSExpression) {
 					return ((ComplexSExpression) evaluatedParameter).getRightChild();
 				} else {
@@ -225,76 +248,93 @@ public class InbuiltFunctions {
 		}
 	}
 
-	public boolean isInbuiltFunction(String functionName) {
-		if(arithmeticFunctions.contains(functionName) || relationalFunctions.contains(functionName) || otherFunctions.contains(functionName))
-			return true;
-		return false;
-	}
-	
-	private SExpression evaluateCondition(SExpression parameterTree, Map<String, SExpression> currentParameterList) throws Exception {
-		// TODO Auto-generated method stub
-		if(parameterTree instanceof ComplexSExpression) {
-			ComplexSExpression pendingExpressionPairs = (ComplexSExpression) parameterTree;
-			while(pendingExpressionPairs!=null) {
-				if(((ComplexSExpression) pendingExpressionPairs).getLeftChild() instanceof ComplexSExpression) {
-					ComplexSExpression currentExpressionPair = (ComplexSExpression) ((ComplexSExpression) pendingExpressionPairs).getLeftChild();
-					SExpression conditionEvaluationResult = MyInterpreter.expressionEvaluator.evaluateSExpression(currentExpressionPair.getLeftChild(), currentParameterList);
-					if(conditionEvaluationResult instanceof Atom && !((Atom) conditionEvaluationResult).getValue().equalsIgnoreCase("NIL")) {
-						if(currentExpressionPair.getRightChild() instanceof ComplexSExpression && ((ComplexSExpression)currentExpressionPair.getRightChild()).getLeftChild()!=null) {
-							if(((ComplexSExpression)currentExpressionPair.getRightChild()).getRightChild()==null) {
-								return MyInterpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)currentExpressionPair.getRightChild()).getLeftChild(), currentParameterList);
-							} else {
-								throw new Exception("ERROR: COND: More than one evaluation expression found for condition: " + commonHelper.sExpressionToString(currentExpressionPair.getLeftChild()));
-							}
-						} else {
-							throw new Exception("ERROR: COND: Invalid evaluation expression: " + commonHelper.sExpressionToString(((ComplexSExpression)currentExpressionPair.getRightChild()).getLeftChild()));
-						}
-					} else {
-						//TODO what if it returns a list or an atom other that 'T' or 'NIL'?
-						pendingExpressionPairs = (ComplexSExpression) pendingExpressionPairs.getRightChild();
-					}
-				} else {
-					throw new Exception("ERROR: COND: Invalid parameters. Expression pairs exected in format (BooleanExpression Expression)");
+	/**
+	 * Applies an inbuilt function that expects one parameter as argument - NULL, ATOM, INT
+	 * 
+	 * @param functionName - name of the inbuilt function
+	 * @param parameterTree - SExpression root of the tree containing parameters to the function
+	 * @param currentParameterList - key value pairs of program variables passed on from previous call in the stack
+	 * @return - the resultant atom of applying the function on the parameters
+	 * @throws Exception
+	 */
+	private Atom applyInbuiltUnaryBooleanFunction(String functionName, SExpression parameterTree, Map<String, SExpression> currentParameterList) throws Exception {
+		if(parameterTree instanceof ComplexSExpression && ((ComplexSExpression) parameterTree).getLeftChild()!=null) {
+			if(((ComplexSExpression) parameterTree).getRightChild()==null) {
+				//continue only if exactly one parameter is provided
+				SExpression evaluatedParameter = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
+				switch (functionName) {
+				case "NULL":
+					if(evaluatedParameter instanceof ComplexSExpression && ((ComplexSExpression) evaluatedParameter).getLeftChild() ==null)
+						return new Atom("T");
+					if(evaluatedParameter instanceof Atom && ((Atom) evaluatedParameter).getValue().equalsIgnoreCase("NIL"))
+						return new Atom("T");
+					if(evaluatedParameter == null)
+						return new Atom("T");
+					return new Atom("NIL");
+				case "ATOM":
+					if(evaluatedParameter instanceof Atom) return new Atom("T");
+					return new Atom("NIL");
+				case "INT":
+					if(evaluatedParameter instanceof Atom && ((Atom) evaluatedParameter).isNumericAtom()) return new Atom("T");
+					return new Atom("NIL");
 				}
+				throw new Exception("ERROR: Unsupported inbuilt function");
+			} else {
+				throw new Exception("ERROR: NULL: more than one parameter found");
 			}
-			throw new Exception("ERROR: COND: None of the expressions evaluated to true");
 		} else {
-			throw new Exception("ERROR: COND: At least one expression pair of the format (BooleanExpression Expression) is expected");
+			throw new Exception("ERROR: NULL expects one parameter");
 		}
 	}
-	
+
+	/**
+	 * Calls the appropriate function based on the called function
+	 *  
+	 * @param functionName - name of the inbuilt function
+	 * @param parameterTree - SExpression root of the tree containing parameters to the function
+	 * @param currentParameterList - key value pairs of program variables passed on from previous call in the stack
+	 * @return - the resultant SExpression of applying the function on the parameters
+	 * @throws Exception
+	 */
 	public SExpression applyInbuiltFunction(String functionName, SExpression parameterTree, Map<String, SExpression> currentParameterList) throws Exception {
 		if(arithmeticFunctions.contains(functionName) || relationalFunctions.contains(functionName)) {
 			return applyInbuiltBinaryIntegerFunction(functionName, parameterTree, currentParameterList);
 		} else {
 			switch (functionName) {
 			case "ATOM":
-				if(parameterTree instanceof Atom) return new Atom("T");
-				else return new Atom("NIL");
 			case "NULL":
-				if(parameterTree==null || (parameterTree instanceof ComplexSExpression && ((ComplexSExpression)parameterTree).getLeftChild()==null)) return new Atom("T");
-				else return new Atom("NIL");
 			case "INT":
-				if(parameterTree instanceof Atom && ((Atom) parameterTree).isNumericAtom()) return new Atom("T");
-				else return new Atom("NIL");
+				return applyInbuiltUnaryBooleanFunction(functionName, parameterTree, currentParameterList);
 			case "EQ":
 				return isEqual(parameterTree, currentParameterList);
 			case "CONS":
 				return consolidateExpressions(parameterTree, currentParameterList);
-			case "DEFUN":
-				return MyInterpreter.inbuiltSpecialFunctions.defineNewFunction(parameterTree);
-			case "QUOTE":
-				return quoteExpression(parameterTree);
 			case "CAR":
 				return car(parameterTree, currentParameterList);
 			case "CDR":
 				return cdr(parameterTree, currentParameterList);
 			case "COND":
-				return evaluateCondition(parameterTree, currentParameterList);
+				return new InbuiltSpecialFunctions().evaluateCondition(parameterTree, currentParameterList);
+			case "DEFUN":
+				return new InbuiltSpecialFunctions().defineNewFunction(parameterTree);
+			case "QUOTE":
+				return new InbuiltSpecialFunctions().quoteExpression(parameterTree);
 			default:
 				throw new Exception("ERROR: Unsupported inbuilt function"); //TODO reword or remove
 			}
 		}
+	}
+
+	/**
+	 * Verifies if the given function name is an inbuilt function
+	 * 
+	 * @param functionName - name of the function called
+	 * @return - true if inbuilt function, false if not
+	 */
+	public boolean isInbuiltFunction(String functionName) {
+		if(arithmeticFunctions.contains(functionName) || relationalFunctions.contains(functionName) || otherFunctions.contains(functionName))
+			return true;
+		return false;
 	}
 
 }

@@ -1,4 +1,10 @@
 
+/**
+ * Atom Expression
+ * 
+ * @author Naveenraj Nagarathinam(nagarathinam.1@osu.edu)
+ *
+ */
 public class Atom extends SExpression {
 
 	private String value;
