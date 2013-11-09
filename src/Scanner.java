@@ -24,7 +24,7 @@ public class Scanner {
 	public String getNextLine() throws EOFException {
 		/*if(count==0) {
 			count++;
-			return "(defun isprime (x)	(cond ((EQ (REMAINDER x 2) 0) NIL)		((EQ (REMAINDER x 3) 0) NIL)		((EQ (REMAINDER x 4) 0) NIL)		((EQ (REMAINDER x 5) 0) NIL)		(t t)	))(defun consprime (list)		(cond ((ISPRIME (car list)) (cons (car list) (consprime (cdr list))))		(t (consprime list))		)	)(consprime (QUOTE (9 11 13 2)))";
+			return "(PLUS -1 -2)";
 		} else {
 			throw new EOFException();
 		}*/

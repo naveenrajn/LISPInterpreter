@@ -170,20 +170,15 @@ public class InbuiltFunctions {
 				//continue only if exactly two parameters are provided
 				SExpression parameter1 = Interpreter.expressionEvaluator.evaluateSExpression(parameterExpressionTree.getLeftChild(), currentParameterList);
 				SExpression parameter2 = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression)parameterExpressionTree.getRightChild()).getLeftChild(), currentParameterList);
-				if(parameter1 instanceof ComplexSExpression && ((ComplexSExpression) parameter1).isList()
-						&& parameter2 instanceof ComplexSExpression && ((ComplexSExpression) parameter2).isList()) {
-					//both parameters are list - concatenate the list by adding the root of second list as the last element of the first list
-					ComplexSExpression currentNode = (ComplexSExpression) parameter1;
-					while(currentNode.getRightChild()!=null) currentNode = (ComplexSExpression) currentNode.getRightChild();
-					currentNode.setRightChild(parameter2);
-					return parameter1;
-				} else if(parameter2 instanceof Atom && ((Atom) parameter2).getValue().equalsIgnoreCase("NIL")) {
+				if(parameter2 instanceof Atom && ((Atom) parameter2).getValue().equalsIgnoreCase("NIL")) {
+					//make it a list if the second parameter is the atom 'NIL;
 					ComplexSExpression consolidatedExpression = new ComplexSExpression(parameter1, null);
 					consolidatedExpression.setList(true);
 					return consolidatedExpression;
 				} else {
 					//if not, consolidate with DOT
 					ComplexSExpression consolidatedExpression = new ComplexSExpression(parameter1, parameter2);
+					//make it a list if second parameter is a list
 					if(parameter2 instanceof ComplexSExpression && ((ComplexSExpression) parameter2).isList())
 						consolidatedExpression.setList(true);
 					return consolidatedExpression;
@@ -236,6 +231,10 @@ public class InbuiltFunctions {
 				//continue only if exactly one parameter is provided
 				SExpression evaluatedParameter = Interpreter.expressionEvaluator.evaluateSExpression(((ComplexSExpression) parameterTree).getLeftChild(), currentParameterList);
 				if(evaluatedParameter instanceof ComplexSExpression) {
+					if(((ComplexSExpression) evaluatedParameter).getLeftChild() == null) {
+						//expression is an empty list
+						throw new Exception("ERROR: CDR: Input is not a list: " + commonHelper.sExpressionToString(evaluatedParameter));
+					}
 					return ((ComplexSExpression) evaluatedParameter).getRightChild();
 				} else {
 					throw new Exception("ERROR: CDR: Input is not a list: " + commonHelper.sExpressionToString(evaluatedParameter));
